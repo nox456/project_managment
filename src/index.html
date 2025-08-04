@@ -3,90 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Gestión de Proyecto</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Gestión de Proyecto</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Dashboard del Proyecto</h1>
+        <h1 id="page-title">Dashboard del Proyecto</h1>
         <nav>
-            <a href="./index.html" class="active">Dashboard</a>
-            <a href="./tasks.html">Tareas</a>
-            <a href="./staff.html">Personal</a>
-            <a href="./materials.html">Materiales</a>
-            <a href="./expenses.html">Otros Gastos</a>
+            <button data-section="dashboard" class="nav-btn active">Dashboard</button>
+            <button data-section="tasks" class="nav-btn">Tareas</button>
+            <button data-section="staff" class="nav-btn">Personal</button>
+            <button data-section="materials" class="nav-btn">Materiales</button>
+            <button data-section="expenses" class="nav-btn">Otros Gastos</button>
         </nav>
     </header>
 
     <main>
-        <section class="dashboard-grid">
-            <div class="card summary">
-                <h2>Resumen del Proyecto</h2>
-                <div class="progress-container">
-                    <div class="progress-bar" id="project-progress"></div>
-                    <span id="progress-text">0%</span>
-                </div>
-                <div class="stats">
-                    <div>
-                        <h3>Tareas</h3>
-                        <p><span id="total-tasks">0</span> / <span id="completed-tasks">0</span></p>
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="page-section active">
+            <div class="dashboard-grid">
+                <div class="card summary">
+                    <h2>Resumen del Proyecto</h2>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="project-progress"></div>
+                        <span id="progress-text">0%</span>
                     </div>
-                    <div>
-                        <h3>Duración</h3>
-                        <p><span id="project-duration">0</span> días</p>
+                    <div class="stats">
+                        <div>
+                            <h3>Tareas</h3>
+                            <p><span id="total-tasks">0</span> / <span id="completed-tasks">0</span></p>
+                        </div>
+                        <div>
+                            <h3>Duración</h3>
+                            <p><span id="project-duration">0</span> días</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card costs">
+                    <h2>Costos del Proyecto</h2>
+                    <div class="cost-comparison">
+                        <div class="budget">
+                            <h3>Presupuestado</h3>
+                            <p>$<span id="budget-total">0</span></p>
+                        </div>
+                        <div class="actual">
+                            <h3>Real</h3>
+                            <p>$<span id="actual-total">0</span></p>
+                        </div>
+                    </div>
+                    <div class="cost-breakdown">
+                        <div class="breakdown-item">
+                            <h4>Personal</h4>
+                            <p>$<span id="staff-cost">0</span> / $<span id="staff-actual">0</span></p>
+                        </div>
+                        <div class="breakdown-item">
+                            <h4>Materiales</h4>
+                            <p>$<span id="materials-cost">0</span> / $<span id="materials-actual">0</span></p>
+                        </div>
+                        <div class="breakdown-item">
+                            <h4>Otros Gastos</h4>
+                            <p>$<span id="expenses-cost">0</span> / $<span id="expenses-actual">0</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card overloaded">
+                    <h2>Personal Sobrecargado</h2>
+                    <div class="overloaded-list" id="overloaded-staff">
+                        <p>No hay personal sobrecargado</p>
+                    </div>
+                </div>
+
+                <div class="card pending-tasks">
+                    <h2>Tareas Pendientes</h2>
+                    <div class="task-list" id="pending-tasks-list">
+                        <p>No hay tareas pendientes</p>
+                    </div>
+                </div>
+
+                <div class="card chart">
+                    <h2>Comparación de Costos</h2>
+                    <div class="chart-container">
+                        <canvas id="costChart"></canvas>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <div class="card costs">
-                <h2>Costos del Proyecto</h2>
-                <div class="cost-comparison">
-                    <div class="budget">
-                        <h3>Presupuestado</h3>
-                        <p>$<span id="budget-total">0</span></p>
-                    </div>
-                    <div class="actual">
-                        <h3>Real</h3>
-                        <p>$<span id="actual-total">0</span></p>
-                    </div>
+        <!-- Tasks Section -->
+        <section id="tasks-section" class="page-section">
+            <div class="task-management">
+                <div class="card">
+                    <h2>Crear Nueva Tarea</h2>
+                    <form id="task-form">
+                        <div class="form-group">
+                            <label for="task-name">Nombre de la Tarea:</label>
+                            <input type="text" id="task-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-duration">Duración (horas):</label>
+                            <input type="number" id="task-duration" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-assigned-staff">Asignar Personal:</label>
+                            <div class="staff-item">
+                                <select id="task-assigned-staff">
+                                    <option value="">Seleccionar personal</option>
+                                </select>
+                                <input type="number" id="task-staff-hours" min="0.5" step="0.5" placeholder="Horas">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-materials">Materiales:</label>
+                            <div id="task-materials-container">
+                                <div class="material-item">
+                                    <select class="material-select">
+                                        <option value="">Seleccionar material</option>
+                                    </select>
+                                    <input type="number" class="material-quantity" min="1" placeholder="Cantidad">
+                                    <button type="button" class="remove-material">×</button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-material">+ Añadir Material</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-expenses">Otros Gastos:</label>
+                            <div id="task-expenses-container">
+                                <div class="expense-item">
+                                    <select class="expense-select">
+                                        <option value="">Seleccionar gasto</option>
+                                    </select>
+                                    <input type="number" class="expense-quantity" min="1" placeholder="Cantidad">
+                                    <button type="button" class="remove-expense">×</button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-expense">+ Añadir Gasto</button>
+                        </div>
+                        <button type="submit">Guardar Tarea</button>
+                    </form>
                 </div>
-                <div class="cost-breakdown">
-                    <div class="breakdown-item">
-                        <h4>Personal</h4>
-                        <p>$<span id="staff-cost">0</span> / $<span id="staff-actual">0</span></p>
+
+                <div class="card">
+                    <h2>Lista de Tareas</h2>
+                    <div class="task-filters">
+                        <select id="task-filter">
+                            <option value="all">Todas las tareas</option>
+                            <option value="completed">Completadas</option>
+                            <option value="pending">Pendientes</option>
+                        </select>
                     </div>
-                    <div class="breakdown-item">
-                        <h4>Materiales</h4>
-                        <p>$<span id="materials-cost">0</span> / $<span id="materials-actual">0</span></p>
-                    </div>
-                    <div class="breakdown-item">
-                        <h4>Otros Gastos</h4>
-                        <p>$<span id="expenses-cost">0</span> / $<span id="expenses-actual">0</span></p>
+                    <div class="task-list" id="tasks-list">
                     </div>
                 </div>
             </div>
+        </section>
 
-            <div class="card overloaded">
-                <h2>Personal Sobrecargado</h2>
-                <div class="overloaded-list" id="overloaded-staff">
-                    <p>No hay personal sobrecargado</p>
+        <!-- Staff Section -->
+        <section id="staff-section" class="page-section">
+            <div class="staff-management">
+                <div class="card">
+                    <h2>Agregar Nuevo Personal</h2>
+                    <form id="staff-form">
+                        <div class="form-group">
+                            <label for="staff-name">Nombre:</label>
+                            <input type="text" id="staff-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-national-id">Cédula de Identidad:</label>
+                            <input type="text" id="staff-national-id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-cost-per-hour">Costo por Hora ($):</label>
+                            <input type="number" id="staff-cost-per-hour" min="0" step="0.01" required>
+                        </div>
+                        <button type="submit">Guardar Personal</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Lista de Personal</h2>
+                    <div class="staff-list" id="staff-list">
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <div class="card pending-tasks">
-                <h2>Tareas Pendientes</h2>
-                <div class="task-list" id="pending-tasks-list">
-                    <p>No hay tareas pendientes</p>
+        <!-- Materials Section -->
+        <section id="materials-section" class="page-section">
+            <div class="material-management">
+                <div class="card">
+                    <h2>Agregar Nuevo Material</h2>
+                    <form id="material-form">
+                        <div class="form-group">
+                            <label for="material-name">Nombre:</label>
+                            <input type="text" id="material-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="material-description">Descripción:</label>
+                            <textarea id="material-description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="material-unit">Unidad de Medida:</label>
+                            <input type="text" id="material-unit" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="material-cost">Costo por Unidad ($):</label>
+                            <input type="number" id="material-cost" min="0" step="0.01" required>
+                        </div>
+                        <button type="submit">Guardar Material</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Lista de Materiales</h2>
+                    <div class="material-list" id="material-list">
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <div class="card chart">
-                <h2>Comparación de Costos</h2>
-                <div class="chart-container">
-                    <canvas id="costChart"></canvas> <!-- visualización de costos, pronta su implementación -->
+        <!-- Expenses Section -->
+        <section id="expenses-section" class="page-section">
+            <div class="expense-management">
+                <div class="card">
+                    <h2>Agregar Nuevo Gasto</h2>
+                    <form id="expense-form">
+                        <div class="form-group">
+                            <label for="expense-name">Nombre:</label>
+                            <input type="text" id="expense-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="expense-description">Descripción:</label>
+                            <textarea id="expense-description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="expense-unit">Unidad de Medida:</label>
+                            <input type="text" id="expense-unit" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="expense-cost">Costo por Unidad ($):</label>
+                            <input type="number" id="expense-cost" min="0" step="0.01" required>
+                        </div>
+                        <button type="submit">Guardar Gasto</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Lista de Gastos</h2>
+                    <div class="expense-list" id="expense-list">
+                    </div>
                 </div>
             </div>
         </section>
     </main>
+
+    <script type="module" src="app.js"></script>
 </body>
 </html>

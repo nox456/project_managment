@@ -27,24 +27,39 @@ nav {
     gap: 1rem;
 }
 
-nav a {
+nav a, nav .nav-btn {
     color: white;
     text-decoration: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
     transition: background-color 0.3s;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
 }
 
-nav a:hover {
+nav a:hover, nav .nav-btn:hover {
     background-color: #34495e;
 }
 
-nav a.active {
+nav a.active, nav .nav-btn.active {
     background-color: #3498db;
+    pointer-events: none;
 }
 
 main {
     padding: 2rem;
+}
+
+/* Section switching */
+.page-section {
+    display: none;
+}
+
+.page-section.active {
+    display: block;
 }
 
 /* Cards */

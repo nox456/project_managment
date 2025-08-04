@@ -1,16 +1,92 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Vite App</title>
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-		<a href="/pages/dashboard/">Dashboard</a>
-		<a href="/pages/materials/">Materials</a>
-		<a href="/pages/staff/">Staff</a>
-		<a href="/pages/tasks/">Tasks</a>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gestión de Proyecto</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Dashboard del Proyecto</h1>
+        <nav>
+            <a href="./index.html" class="active">Dashboard</a>
+            <a href="./tasks.html">Tareas</a>
+            <a href="./staff.html">Personal</a>
+            <a href="./materials.html">Materiales</a>
+            <a href="./expenses.html">Otros Gastos</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="dashboard-grid">
+            <div class="card summary">
+                <h2>Resumen del Proyecto</h2>
+                <div class="progress-container">
+                    <div class="progress-bar" id="project-progress"></div>
+                    <span id="progress-text">0%</span>
+                </div>
+                <div class="stats">
+                    <div>
+                        <h3>Tareas</h3>
+                        <p><span id="total-tasks">0</span> / <span id="completed-tasks">0</span></p>
+                    </div>
+                    <div>
+                        <h3>Duración</h3>
+                        <p><span id="project-duration">0</span> días</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card costs">
+                <h2>Costos del Proyecto</h2>
+                <div class="cost-comparison">
+                    <div class="budget">
+                        <h3>Presupuestado</h3>
+                        <p>$<span id="budget-total">0</span></p>
+                    </div>
+                    <div class="actual">
+                        <h3>Real</h3>
+                        <p>$<span id="actual-total">0</span></p>
+                    </div>
+                </div>
+                <div class="cost-breakdown">
+                    <div class="breakdown-item">
+                        <h4>Personal</h4>
+                        <p>$<span id="staff-cost">0</span> / $<span id="staff-actual">0</span></p>
+                    </div>
+                    <div class="breakdown-item">
+                        <h4>Materiales</h4>
+                        <p>$<span id="materials-cost">0</span> / $<span id="materials-actual">0</span></p>
+                    </div>
+                    <div class="breakdown-item">
+                        <h4>Otros Gastos</h4>
+                        <p>$<span id="expenses-cost">0</span> / $<span id="expenses-actual">0</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card overloaded">
+                <h2>Personal Sobrecargado</h2>
+                <div class="overloaded-list" id="overloaded-staff">
+                    <p>No hay personal sobrecargado</p>
+                </div>
+            </div>
+
+            <div class="card pending-tasks">
+                <h2>Tareas Pendientes</h2>
+                <div class="task-list" id="pending-tasks-list">
+                    <p>No hay tareas pendientes</p>
+                </div>
+            </div>
+
+            <div class="card chart">
+                <h2>Comparación de Costos</h2>
+                <div class="chart-container">
+                    <canvas id="costChart"></canvas> <!-- visualización de costos, pronta su implementación -->
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
 </html>

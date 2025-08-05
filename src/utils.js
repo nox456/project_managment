@@ -1,6 +1,6 @@
-import { extraCosts, materials, staff } from "../db/data";
+// import { extraCosts, materials, staff } from "../db/data";
 
-export function populateSelects() {
+function populateSelects() {
     const staffSelect = document.getElementById("task-assigned-staff");
     const materialSelects = document.querySelectorAll(".material-select");
     const expenseSelects = document.querySelectorAll(".expense-select");

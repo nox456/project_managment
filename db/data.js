@@ -10,7 +10,7 @@
 /**
  * @type {Staff[]}
  * */
-export const staff = []
+const staff = []
 
 // Materials definition
 /**
@@ -22,7 +22,7 @@ export const staff = []
 /**
  * @type {Material[]}
  */
-export const materials = []
+const materials = []
 
 // Extra costs definition
 /**
@@ -34,7 +34,7 @@ export const materials = []
 /**
  * @type {ExtraCost[]}
  */
-export const extraCosts = []
+const extraCosts = []
 
 // Tasks definition
 /**
@@ -51,4 +51,4 @@ export const extraCosts = []
 /**
  * @type {Task[]}
  */
-export const tasks = []
+const tasks = []

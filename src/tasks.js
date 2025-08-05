@@ -1,7 +1,7 @@
-import { staff, tasks, materials, extraCosts } from "../db/data.js";
-import { populateSelects } from "./utils.js";
+// import { staff, tasks, materials, extraCosts } from "../db/data.js";
+// import { populateSelects } from "./utils.js";
 
-export function loadTasks() {
+function loadTasks() {
     const tasksList = document.getElementById("tasks-list");
     const filter = document.getElementById("task-filter")?.value || "all";
 
@@ -98,11 +98,11 @@ export function loadTasks() {
         .join("");
 }
 
-export function toggleTask(index) {
+function toggleTask(index) {
     tasks[index].completed = !tasks[index].completed;
     loadTasks();
 }
-export function updateTaskStats() {
+function updateTaskStats() {
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter((task) => task.completed).length;
     const progress =
@@ -119,7 +119,7 @@ export function updateTaskStats() {
     if (progressBarEl) progressBarEl.style.width = `${progress}%`;
 }
 
-export function updatePendingTasks() {
+function updatePendingTasks() {
     const pendingTasks = tasks.filter((task) => !task.completed);
     const pendingTasksList = document.getElementById("pending-tasks-list");
 
@@ -170,7 +170,7 @@ export function updatePendingTasks() {
         .join("");
 }
 
-export function handleTaskSubmit(e) {
+function handleTaskSubmit(e) {
     e.preventDefault();
 
     const staffSelect = document.getElementById("task-assigned-staff");

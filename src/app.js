@@ -430,7 +430,7 @@ class ProjectManagement {
         expenseItems.forEach((item) => {
             const select = item.querySelector(".expense-select");
             const quantity = item.querySelector(".expense-quantity");
-            if (select.value && quantity.value) {
+            if (select?.value && quantity?.value) {
                 selectedExpenses.push({
                     name: select.value,
                     quantity: parseInt(quantity.value),

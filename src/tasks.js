@@ -177,6 +177,13 @@ export function handleTaskSubmit(e) {
     const selectedStaff =
         staffSelect.value !== "" ? staff[parseInt(staffSelect.value)] : null;
 
+    // Validation: require staff selection
+    if (!selectedStaff) {
+        alert("Debes asignar personal para crear una nueva tarea.");
+        staffSelect.focus();
+        return;
+    }
+
     const newTask = {
         name: document.getElementById("task-name").value,
         hours: parseInt(document.getElementById("task-duration").value),
@@ -188,6 +195,9 @@ export function handleTaskSubmit(e) {
     };
 
     tasks.push(newTask);
+    if (typeof window.ProjectManagementInstance === 'object' && window.ProjectManagementInstance.saveToStorage) {
+        window.ProjectManagementInstance.saveToStorage();
+    }
     loadTasks();
     populateSelects();
     e.target.reset();

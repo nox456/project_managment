@@ -1,6 +1,6 @@
 import { tasks, materials, staff, extraCosts } from "../db/data.js";
 import {
-	handleTaskSubmit,
+    handleTaskSubmit,
     loadTasks,
     toggleTask,
     updatePendingTasks,
@@ -11,7 +11,51 @@ import { populateSelects } from "./utils.js";
 class ProjectManagement {
     constructor() {
         this.currentSection = "dashboard";
+        this.loadFromStorage();
         this.init();
+    }
+
+    saveToStorage() {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        localStorage.setItem('staff', JSON.stringify(staff));
+        localStorage.setItem('materials', JSON.stringify(materials));
+        localStorage.setItem('extraCosts', JSON.stringify(extraCosts));
+    }
+
+    loadFromStorage() {
+        try {
+            const t = localStorage.getItem('tasks');
+            const s = localStorage.getItem('staff');
+            const m = localStorage.getItem('materials');
+            const e = localStorage.getItem('extraCosts');
+            if (t) {
+                const arr = JSON.parse(t);
+                tasks.length = 0;
+                arr.forEach(x => {
+                    // Asegura que la propiedad completed sea booleana
+                    if (typeof x.completed === 'undefined') x.completed = false;
+                    else x.completed = Boolean(x.completed);
+                    tasks.push(x);
+                });
+            }
+            if (s) {
+                const arr = JSON.parse(s);
+                staff.length = 0;
+                arr.forEach(x => staff.push(x));
+            }
+            if (m) {
+                const arr = JSON.parse(m);
+                materials.length = 0;
+                arr.forEach(x => materials.push(x));
+            }
+            if (e) {
+                const arr = JSON.parse(e);
+                extraCosts.length = 0;
+                arr.forEach(x => extraCosts.push(x));
+            }
+        } catch (err) {
+            // ignore
+        }
     }
 
     init() {
@@ -171,10 +215,12 @@ class ProjectManagement {
         if (e.target.classList.contains("toggle-task")) {
             const index = parseInt(e.target.getAttribute("data-task-index"));
             toggleTask(index);
+            this.saveToStorage();
         }
         if (e.target.classList.contains("delete-staff")) {
             const index = parseInt(e.target.getAttribute("data-staff-index"));
             staff.splice(index, 1);
+            this.saveToStorage();
             this.loadStaff();
         }
         if (e.target.classList.contains("delete-material")) {
@@ -182,13 +228,84 @@ class ProjectManagement {
                 e.target.getAttribute("data-material-index"),
             );
             materials.splice(index, 1);
+            this.saveToStorage();
             this.loadMaterials();
         }
         if (e.target.classList.contains("delete-expense")) {
             const index = parseInt(e.target.getAttribute("data-expense-index"));
             extraCosts.splice(index, 1);
+            this.saveToStorage();
             this.loadExpenses();
         }
+    }
+    
+    updateCostChart() {
+        const ctx = document.getElementById('costChart');
+        if (!ctx) return;
+
+        if (ctx.chart) {
+            ctx.chart.destroy();
+        }
+
+        let actualStaffCost = 0, actualMaterialsCost = 0, actualExpensesCost = 0;
+
+        // Budgeted: use estimatedCost for each task
+        let totalBudgeted = 0;
+        tasks.forEach(task => {
+            if (task.estimatedCost && !isNaN(parseFloat(task.estimatedCost))) {
+                totalBudgeted += parseFloat(task.estimatedCost);
+            }
+        });
+
+        // Actual: only completed tasks
+        tasks.filter(task => task.completed).forEach(task => {
+            if (task.staff && task.hours) actualStaffCost += task.staff.costPerHour * task.hours;
+            if (task.materials) actualMaterialsCost += task.materials.reduce((sum, m) => {
+                const mat = materials.find(mat => mat.name === m.name);
+                return sum + (mat ? mat.cost * m.quantity : 0);
+            }, 0);
+            if (task.extraCosts) actualExpensesCost += task.extraCosts.reduce((sum, e) => {
+                const exp = extraCosts.find(exp => exp.name === e.name);
+                return sum + (exp ? exp.cost * e.quantity : 0);
+            }, 0);
+        });
+
+        ctx.chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Total'],
+                datasets: [
+                    {
+                        label: 'Presupuestado',
+                        data: [totalBudgeted],
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Real',
+                        data: [
+                            actualStaffCost + actualMaterialsCost + actualExpensesCost
+                        ],
+                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                        borderColor: 'rgba(46, 204, 113, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Costo (Bs.)'
+                        }
+                    }
+                }
+            }
+        });
     }
 
     loadInitialData() {
@@ -199,8 +316,50 @@ class ProjectManagement {
     // Dashboard methods
     loadDashboard() {
         updateTaskStats();
+        this.updateProjectDuration();
+        this.updateCostChart();
         this.updateCostBreakdown();
+        this.updateOverloadedStaff();
         updatePendingTasks();
+    }
+
+    updateProjectDuration() {
+        // Sum all task hours
+        const totalHours = tasks.reduce((sum, task) => {
+            return sum + (Number(task.hours) || 0);
+        }, 0);
+        const durationEl = document.getElementById("project-duration");
+        if (durationEl) {
+            durationEl.textContent = totalHours;
+        }
+    }
+
+    updateOverloadedStaff() {
+        // Calculate total assigned hours for each staff
+        const staffHours = {};
+        tasks.forEach(task => {
+            if (task.staff && task.hours) {
+                const staffName = task.staff.name;
+                if (!staffHours[staffName]) staffHours[staffName] = 0;
+                staffHours[staffName] += Number(task.hours);
+            }
+        });
+
+        // Find overloaded staff (more than 8 hours)
+        const overloaded = Object.entries(staffHours)
+            .filter(([name, hours]) => hours > 8)
+            .map(([name, hours]) => ({ name, hours }));
+
+        const overloadedList = document.getElementById("overloaded-staff");
+        if (!overloadedList) return;
+
+        if (overloaded.length === 0) {
+            overloadedList.innerHTML = '<p>No hay personal sobrecargado</p>';
+        } else {
+            overloadedList.innerHTML = overloaded.map(
+                s => `<div class="list-item"><h3>${s.name}</h3><p><strong>Horas asignadas:</strong> ${s.hours}</p></div>`
+            ).join("");
+        }
     }
 
     updateCostBreakdown() {
@@ -301,7 +460,7 @@ class ProjectManagement {
         const selectedMaterials = [];
 
         materialItems.forEach((item) => {
-			console.log(item)
+            console.log(item)
             const select = item.querySelector(".material-select");
             const quantity = item.querySelector(".material-quantity");
             const material = materials.find(
@@ -390,6 +549,7 @@ class ProjectManagement {
         };
 
         staff.push(newStaff);
+        this.saveToStorage();
         this.loadStaff();
         populateSelects();
         e.target.reset();
@@ -429,6 +589,7 @@ class ProjectManagement {
         };
 
         materials.push(newMaterial);
+        this.saveToStorage();
         this.loadMaterials();
         populateSelects();
         e.target.reset();
@@ -468,6 +629,7 @@ class ProjectManagement {
         };
 
         extraCosts.push(newExpense);
+        this.saveToStorage();
         this.loadExpenses();
         populateSelects();
         e.target.reset();
@@ -501,5 +663,5 @@ class ProjectManagement {
 
 // Initialize the app when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-    new ProjectManagement();
+    window.ProjectManagementInstance = new ProjectManagement();
 });

@@ -16,7 +16,6 @@ export const staff = []
 /**
  * @typedef {Object} Material
  * @property {string} name
- * @property {number} quantity
  * @property {number} cost
  */
 
@@ -45,6 +44,8 @@ export const extraCosts = []
  * @property {Staff} staff
  * @property {Material[]} materials
  * @property {ExtraCost[]} extraCosts
+ * @property {boolean} completed
+ * @property {number} estimatedCost
  */
 
 /**

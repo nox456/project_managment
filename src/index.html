@@ -19,6 +19,7 @@
     </header>
 
     <main>
+        <div class="sections-container">
         <!-- Dashboard Section -->
         <section id="dashboard-section" class="page-section active">
             <div class="dashboard-grid">
@@ -79,13 +80,6 @@
                     <h2>Tareas Pendientes</h2>
                     <div class="task-list" id="pending-tasks-list">
                         <p>No hay tareas pendientes</p>
-                    </div>
-                </div>
-
-                <div class="card chart">
-                    <h2>Comparación de Costos</h2>
-                    <div class="chart-container">
-                        <canvas id="costChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -229,14 +223,6 @@
                             <input type="text" id="expense-name" required>
                         </div>
                         <div class="form-group">
-                            <label for="expense-description">Descripción:</label>
-                            <input type="text" id="expense-description">
-                        </div>
-                        <div class="form-group">
-                            <label for="expense-unit">Unidad:</label>
-                            <input type="text" id="expense-unit" required>
-                        </div>
-                        <div class="form-group">
                             <label for="expense-cost">Costo (Bs.):</label>
                             <input type="number" id="expense-cost" min="0" step="0.01" required>
                         </div>
@@ -251,9 +237,9 @@
                 </div>
             </div>
         </section>
+        </div>
     </main>
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -75,24 +75,40 @@ class ProjectManagement {
     }
 
     showSection(sectionName) {
-        // Hide all sections
-        document.querySelectorAll(".page-section").forEach((section) => {
-            section.classList.remove("active");
-        });
+        const sections = ["dashboard", "tasks", "staff", "materials", "expenses"];
+        const targetIndex = sections.indexOf(sectionName);
+        
+        if (targetIndex === -1) return;
 
         // Remove active class from nav buttons
         document.querySelectorAll(".nav-btn").forEach((btn) => {
             btn.classList.remove("active");
         });
 
+        // Update sections container transform
+        const container = document.querySelector(".sections-container");
+        const translateX = -targetIndex * 20; // 20% per section
+        container.style.transform = `translateX(${translateX}%)`;
+
+        // Update section classes for card effect
+        document.querySelectorAll(".page-section").forEach((section, index) => {
+            section.classList.remove("active", "prev", "next");
+            
+            if (index === targetIndex) {
+                section.classList.add("active");
+            } else if (index === targetIndex - 1) {
+                section.classList.add("prev");
+            } else if (index === targetIndex + 1) {
+                section.classList.add("next");
+            }
+        });
+
         // Show selected section
-        const targetSection = document.getElementById(`${sectionName}-section`);
         const targetButton = document.querySelector(
             `[data-section="${sectionName}"]`,
         );
 
-        if (targetSection && targetButton) {
-            targetSection.classList.add("active");
+        if (targetButton) {
             targetButton.classList.add("active");
             this.currentSection = sectionName;
             this.updatePageTitle(sectionName);
@@ -238,75 +254,6 @@ class ProjectManagement {
             this.loadExpenses();
         }
     }
-    
-    updateCostChart() {
-        const ctx = document.getElementById('costChart');
-        if (!ctx) return;
-
-        if (ctx.chart) {
-            ctx.chart.destroy();
-        }
-
-        let actualStaffCost = 0, actualMaterialsCost = 0, actualExpensesCost = 0;
-
-        // Budgeted: use estimatedCost for each task
-        let totalBudgeted = 0;
-        tasks.forEach(task => {
-            if (task.estimatedCost && !isNaN(parseFloat(task.estimatedCost))) {
-                totalBudgeted += parseFloat(task.estimatedCost);
-            }
-        });
-
-        // Actual: only completed tasks
-        tasks.filter(task => task.completed).forEach(task => {
-            if (task.staff && task.hours) actualStaffCost += task.staff.costPerHour * task.hours;
-            if (task.materials) actualMaterialsCost += task.materials.reduce((sum, m) => {
-                const mat = materials.find(mat => mat.name === m.name);
-                return sum + (mat ? mat.cost * m.quantity : 0);
-            }, 0);
-            if (task.extraCosts) actualExpensesCost += task.extraCosts.reduce((sum, e) => {
-                const exp = extraCosts.find(exp => exp.name === e.name);
-                return sum + (exp ? exp.cost * e.quantity : 0);
-            }, 0);
-        });
-
-        ctx.chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Total'],
-                datasets: [
-                    {
-                        label: 'Presupuestado',
-                        data: [totalBudgeted],
-                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                        borderColor: 'rgba(52, 152, 219, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Real',
-                        data: [
-                            actualStaffCost + actualMaterialsCost + actualExpensesCost
-                        ],
-                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
-                        borderColor: 'rgba(46, 204, 113, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Costo (Bs.)'
-                        }
-                    }
-                }
-            }
-        });
-    }
 
     loadInitialData() {
         this.loadDashboard();
@@ -317,7 +264,6 @@ class ProjectManagement {
     loadDashboard() {
         updateTaskStats();
         this.updateProjectDuration();
-        this.updateCostChart();
         this.updateCostBreakdown();
         this.updateOverloadedStaff();
         updatePendingTasks();
@@ -347,7 +293,7 @@ class ProjectManagement {
 
         // Find overloaded staff (more than 8 hours)
         const overloaded = Object.entries(staffHours)
-            .filter(([name, hours]) => hours > 8)
+            .filter(([_, hours]) => hours > 8)
             .map(([name, hours]) => ({ name, hours }));
 
         const overloadedList = document.getElementById("overloaded-staff");
@@ -460,7 +406,6 @@ class ProjectManagement {
         const selectedMaterials = [];
 
         materialItems.forEach((item) => {
-            console.log(item)
             const select = item.querySelector(".material-select");
             const quantity = item.querySelector(".material-quantity");
             const material = materials.find(
@@ -571,7 +516,7 @@ class ProjectManagement {
             <div class="staff-item">
                 <h3>${person.name}</h3>
                 <p><strong>Cédula:</strong> ${person.nationalId}</p>
-                <p><strong>Costo por hora:</strong> $${person.costPerHour}</p>
+                <p><strong>Costo por hora:</strong> Bs.${person.costPerHour}</p>
                 <button data-staff-index="${index}" class="delete-staff">Eliminar</button>
             </div>
         `,
@@ -610,7 +555,7 @@ class ProjectManagement {
                 (material) => `
             <div class="material">
                 <h3>${material.name}</h3>
-                <p><strong>Costo:</strong> $${material.cost}</p>
+                <p><strong>Costo:</strong> Bs.${material.cost}</p>
             </div>
         `,
             )
@@ -623,8 +568,6 @@ class ProjectManagement {
 
         const newExpense = {
             name: document.getElementById("expense-name").value,
-            description: document.getElementById("expense-description").value,
-            unit: document.getElementById("expense-unit").value,
             cost: parseFloat(document.getElementById("expense-cost").value),
         };
 
@@ -650,9 +593,7 @@ class ProjectManagement {
                 (expense, index) => `
             <div class="expense-item">
                 <h3>${expense.name}</h3>
-                <p><strong>Unidad:</strong> ${expense.unit}</p>
-                <p><strong>Costo:</strong> $${expense.cost}</p>
-                ${expense.description ? `<p><strong>Descripción:</strong> ${expense.description}</p>` : ""}
+                <p><strong>Costo:</strong> Bs.${expense.cost}</p>
                 <button data-expense-index="${index}" class="delete-expense">Eliminar</button>
             </div>
         `,

@@ -53,15 +53,15 @@ export function loadTasks() {
                     <p><strong>Duración:</strong> ${task.hours} horas</p>
                     ${task.description ? `<p><strong>Descripción:</strong> ${task.description}</p>` : ""}
                     ${task.startDate ? `<p><strong>Fecha de inicio:</strong> ${task.startDate}</p>` : ""}
-                    ${task.staff ? `<p><strong>Personal asignado:</strong> ${task.staff.name} ($${task.staff.costPerHour}/h)</p>` : ""}
+                    ${task.staff ? `<p><strong>Personal asignado:</strong> ${task.staff.name} (Bs.${task.staff.costPerHour}/h)</p>` : ""}
                     
                     <div class="cost-details">
                         <h4>Desglose de costos:</h4>
-                        ${task.estimatedCost ? `<p><strong>Costo estimado:</strong> $${parseFloat(task.estimatedCost).toFixed(2)}</p>` : ""}
-                        <p><strong>Costo real:</strong> $${totalActualCost.toFixed(2)}</p>
-                        ${laborCost > 0 ? `<p>&nbsp;&nbsp;• Mano de obra: $${laborCost.toFixed(2)}</p>` : ""}
-                        ${materialsCost > 0 ? `<p>&nbsp;&nbsp;• Materiales: $${materialsCost.toFixed(2)}</p>` : ""}
-                        ${extraCostTotal > 0 ? `<p>&nbsp;&nbsp;• Otros gastos: $${extraCostTotal.toFixed(2)}</p>` : ""}
+                        ${task.estimatedCost ? `<p><strong>Costo estimado:</strong> Bs.${parseFloat(task.estimatedCost).toFixed(2)}</p>` : ""}
+                        <p><strong>Costo real:</strong> Bs.${totalActualCost.toFixed(2)}</p>
+                        ${laborCost > 0 ? `<p>&nbsp;&nbsp;• Mano de obra: Bs.${laborCost.toFixed(2)}</p>` : ""}
+                        ${materialsCost > 0 ? `<p>&nbsp;&nbsp;• Materiales: Bs.${materialsCost.toFixed(2)}</p>` : ""}
+                        ${extraCostTotal > 0 ? `<p>&nbsp;&nbsp;• Otros gastos: Bs.${extraCostTotal.toFixed(2)}</p>` : ""}
                     </div>
 
                     ${task.materials && task.materials.length ? `
@@ -70,7 +70,7 @@ export function loadTasks() {
                             <ul>
                                 ${task.materials.map(m => {
                                     const material = materials.find(mat => mat.name === m.name);
-                                    return `<li>${m.name} - Cantidad: ${m.quantity}${material ? ` ($${material.cost}/unidad)` : ''}</li>`;
+                                    return `<li>${m.name} - Cantidad: ${m.quantity}${material ? ` (Bs.${material.cost}/unidad)` : ''}</li>`;
                                 }).join("")}
                             </ul>
                         </div>
@@ -82,7 +82,7 @@ export function loadTasks() {
                             <ul>
                                 ${task.extraCosts.map(e => {
                                     const expense = extraCosts.find(exp => exp.name === e.name);
-                                    return `<li>${e.name} - Cantidad: ${e.quantity}${expense ? ` ($${expense.cost}/unidad)` : ''}</li>`;
+                                    return `<li>${e.name} - Cantidad: ${e.quantity}${expense ? ` (Bs.${expense.cost}/unidad)` : ''}</li>`;
                                 }).join("")}
                             </ul>
                         </div>
@@ -155,8 +155,8 @@ export function updatePendingTasks() {
                     <h4>${task.name}</h4>
                     <p><strong>Duración:</strong> ${task.hours || 0} horas</p>
                     ${task.staff ? `<p><strong>Asignado a:</strong> ${task.staff.name}</p>` : '<p><strong>Sin asignar</strong></p>'}
-                    ${task.estimatedCost ? `<p><strong>Presupuesto:</strong> $${parseFloat(task.estimatedCost).toFixed(2)}</p>` : ''}
-                    <p><strong>Costo estimado:</strong> $${totalEstimatedCost.toFixed(2)}</p>
+                    ${task.estimatedCost ? `<p><strong>Presupuesto:</strong> Bs.${parseFloat(task.estimatedCost).toFixed(2)}</p>` : ''}
+                    <p><strong>Costo estimado:</strong> Bs.${totalEstimatedCost.toFixed(2)}</p>
                     ${task.materials && task.materials.length ? `
                         <p><strong>Materiales:</strong> ${task.materials.map(m => `${m.name} (${m.quantity})`).join(", ")}</p>
                     ` : ""}

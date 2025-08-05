@@ -1,4 +1,12 @@
 import { tasks, materials, staff, extraCosts } from "../db/data.js";
+import {
+	handleTaskSubmit,
+    loadTasks,
+    toggleTask,
+    updatePendingTasks,
+    updateTaskStats,
+} from "./tasks.js";
+import { populateSelects } from "./utils.js";
 
 class ProjectManagement {
     constructor() {
@@ -72,7 +80,7 @@ class ProjectManagement {
                 this.loadDashboard();
                 break;
             case "tasks":
-                this.loadTasks();
+                loadTasks();
                 break;
             case "staff":
                 this.loadStaff();
@@ -92,7 +100,7 @@ class ProjectManagement {
         if (taskForm) {
             taskForm.addEventListener(
                 "submit",
-                this.handleTaskSubmit.bind(this),
+                handleTaskSubmit.bind(this),
             );
         }
 
@@ -132,7 +140,7 @@ class ProjectManagement {
         // Task filter
         const taskFilter = document.getElementById("task-filter");
         if (taskFilter) {
-            taskFilter.addEventListener("change", () => this.loadTasks());
+            taskFilter.addEventListener("change", () => loadTasks());
         }
 
         // Add material/expense buttons
@@ -162,7 +170,7 @@ class ProjectManagement {
         }
         if (e.target.classList.contains("toggle-task")) {
             const index = parseInt(e.target.getAttribute("data-task-index"));
-            this.toggleTask(index);
+            toggleTask(index);
         }
         if (e.target.classList.contains("delete-staff")) {
             const index = parseInt(e.target.getAttribute("data-staff-index"));
@@ -185,72 +193,14 @@ class ProjectManagement {
 
     loadInitialData() {
         this.loadDashboard();
-        this.populateSelects();
-    }
-
-    populateSelects() {
-        const staffSelect = document.getElementById("task-assigned-staff");
-        const materialSelects = document.querySelectorAll(".material-select");
-        const expenseSelects = document.querySelectorAll(".expense-select");
-
-        if (staffSelect) {
-            staffSelect.innerHTML =
-                '<option value="">Seleccionar personal</option>' +
-                staff
-                    .map(
-                        (s, index) =>
-                            `<option value="${index}">${s.name}</option>`,
-                    )
-                    .join("");
-        }
-
-        materialSelects.forEach((select) => {
-            select.innerHTML =
-                '<option value="">Seleccionar material</option>' +
-                materials
-                    .map((m) => `<option value="${m.name}">${m.name}</option>`)
-                    .join("");
-        });
-
-        expenseSelects.forEach((select) => {
-            select.innerHTML =
-                '<option value="">Seleccionar gasto</option>' +
-                extraCosts
-                    .map((e) => `<option value="${e.name}">${e.name}</option>`)
-                    .join("");
-        });
+        populateSelects();
     }
 
     // Dashboard methods
     loadDashboard() {
-        this.updateTaskStats();
+        updateTaskStats();
         this.updateCostBreakdown();
-        this.updatePendingTasks();
-    }
-
-    updateTaskStats() {
-        const totalTasks = tasks.length;
-        const completedTasks = tasks.filter((task) => task.completed).length;
-        const totalHours = tasks.reduce(
-            (sum, task) => sum + (task.hours || 0),
-            0,
-        );
-        const progress =
-            totalTasks > 0
-                ? Math.round((completedTasks / totalTasks) * 100)
-                : 0;
-
-        const totalTasksEl = document.getElementById("total-tasks");
-        const completedTasksEl = document.getElementById("completed-tasks");
-        const projectDurationEl = document.getElementById("project-duration");
-        const progressTextEl = document.getElementById("progress-text");
-        const progressBarEl = document.getElementById("project-progress");
-
-        if (totalTasksEl) totalTasksEl.textContent = totalTasks;
-        if (completedTasksEl) completedTasksEl.textContent = completedTasks;
-        if (projectDurationEl) projectDurationEl.textContent = totalHours;
-        if (progressTextEl) progressTextEl.textContent = `${progress}%`;
-        if (progressBarEl) progressBarEl.style.width = `${progress}%`;
+        updatePendingTasks();
     }
 
     updateCostBreakdown() {
@@ -290,33 +240,9 @@ class ProjectManagement {
             expensesActualEl.textContent = expensesCosts.toFixed(2);
     }
 
-    updatePendingTasks() {
-        const pendingTasks = tasks.filter((task) => !task.completed);
-        const pendingTasksList = document.getElementById("pending-tasks-list");
-
-        if (!pendingTasksList) return;
-
-        if (pendingTasks.length === 0) {
-            pendingTasksList.innerHTML = "<p>No hay tareas pendientes</p>";
-            return;
-        }
-
-        pendingTasksList.innerHTML = pendingTasks
-            .slice(0, 5)
-            .map(
-                (task) => `
-            <div class="pending-task-item">
-                <h4>${task.name}</h4>
-                <p>${task.hours || 0} horas</p>
-            </div>
-        `,
-            )
-            .join("");
-    }
-
     calculateStaffCosts() {
         return tasks.reduce((total, task) => {
-            if (task.staff && task.hours) {
+            if (task.completed && task.staff && task.hours) {
                 const staffHours =
                     document.getElementById("task-staff-hours")?.value ||
                     task.hours;
@@ -328,7 +254,7 @@ class ProjectManagement {
 
     calculateMaterialsCosts() {
         return tasks.reduce((total, task) => {
-            if (task.materials && Array.isArray(task.materials)) {
+            if (task.completed && task.materials && Array.isArray(task.materials)) {
                 const taskMaterialsCost = task.materials.reduce(
                     (materialsTotal, taskMaterial) => {
                         const material = materials.find(
@@ -351,7 +277,7 @@ class ProjectManagement {
 
     calculateExpensesCosts() {
         return tasks.reduce((total, task) => {
-            if (task.extraCosts && Array.isArray(task.extraCosts)) {
+            if (task.completed && task.extraCosts && Array.isArray(task.extraCosts)) {
                 const taskExpensesCost = task.extraCosts.reduce(
                     (expensesTotal, taskExpense) => {
                         const expense = extraCosts.find(
@@ -370,37 +296,12 @@ class ProjectManagement {
         }, 0);
     }
 
-    // Task methods
-    handleTaskSubmit(e) {
-        e.preventDefault();
-
-        const staffSelect = document.getElementById("task-assigned-staff");
-        const selectedStaff =
-            staffSelect.value !== ""
-                ? staff[parseInt(staffSelect.value)]
-                : null;
-
-        const newTask = {
-            name: document.getElementById("task-name").value,
-            hours: parseInt(document.getElementById("task-duration").value),
-            staff: selectedStaff,
-            materials: this.getSelectedMaterials(),
-            extraCosts: this.getSelectedExpenses(),
-            estimatedCost: document.getElementById("task-estimated-cost").value,
-            completed: false,
-        };
-
-        tasks.push(newTask);
-        this.loadTasks();
-        this.populateSelects();
-        e.target.reset();
-    }
-
     getSelectedMaterials() {
         const materialItems = document.querySelectorAll(".material-item");
         const selectedMaterials = [];
 
         materialItems.forEach((item) => {
+			console.log(item)
             const select = item.querySelector(".material-select");
             const quantity = item.querySelector(".material-quantity");
             const material = materials.find(
@@ -466,53 +367,6 @@ class ProjectManagement {
         container.appendChild(newRow);
     }
 
-    loadTasks() {
-        const tasksList = document.getElementById("tasks-list");
-        const filter = document.getElementById("task-filter")?.value || "all";
-
-        if (!tasksList) return;
-
-        let filteredTasks = tasks;
-        if (filter === "completed") {
-            filteredTasks = tasks.filter((task) => task.completed);
-        } else if (filter === "pending") {
-            filteredTasks = tasks.filter((task) => !task.completed);
-        }
-
-        if (filteredTasks.length === 0) {
-            tasksList.innerHTML = "<p>No hay tareas para mostrar.</p>";
-            return;
-        }
-
-        tasksList.innerHTML = filteredTasks
-            .map(
-                (task) => `
-            <div class="task-item ${task.completed ? "completed" : ""}">
-                <h3>${task.name}</h3>
-                <p><strong>Horas:</strong> ${task.hours}</p>
-                ${task.description ? `<p><strong>Descripción:</strong> ${task.description}</p>` : ""}
-                ${task.startDate ? `<p><strong>Fecha de inicio:</strong> ${task.startDate}</p>` : ""}
-                ${task.staff ? `<p><strong>Personal:</strong> ${task.staff.name} ($${task.staff.costPerHour}/h)</p>` : ""}
-				${task.estimatedCost ? `<p><strong>Costo estimado: </strong>${task.estimatedCost}</p>` : ""}
-                ${task.materials && task.materials.length ? `<p><strong>Materiales:</strong> ${task.materials.map((m) => `${m.name} (${m.quantity})`).join(", ")}</p>` : ""}
-                ${task.extraCosts && task.extraCosts.length ? `<p><strong>Gastos:</strong> ${task.extraCosts.map((e) => `${e.name} (${e.quantity})`).join(", ")}</p>` : ""}
-                <button data-task-index="${tasks.indexOf(task)}" class="toggle-task">
-                    ${task.completed ? "Marcar como pendiente" : "Marcar como completada"}
-                </button>
-            </div>
-        `,
-            )
-            .join("");
-    }
-
-    toggleTask(index) {
-        tasks[index].completed = !tasks[index].completed;
-        this.loadTasks();
-        if (this.currentSection === "dashboard") {
-            this.loadDashboard();
-        }
-    }
-
     // Staff methods
     handleStaffSubmit(e) {
         e.preventDefault();
@@ -537,7 +391,7 @@ class ProjectManagement {
 
         staff.push(newStaff);
         this.loadStaff();
-        this.populateSelects();
+        populateSelects();
         e.target.reset();
     }
 
@@ -576,7 +430,7 @@ class ProjectManagement {
 
         materials.push(newMaterial);
         this.loadMaterials();
-        this.populateSelects();
+        populateSelects();
         e.target.reset();
     }
 
@@ -593,7 +447,7 @@ class ProjectManagement {
         materialList.innerHTML = materials
             .map(
                 (material) => `
-            <div class="material-item">
+            <div class="material">
                 <h3>${material.name}</h3>
                 <p><strong>Costo:</strong> $${material.cost}</p>
             </div>
@@ -615,7 +469,7 @@ class ProjectManagement {
 
         extraCosts.push(newExpense);
         this.loadExpenses();
-        this.populateSelects();
+        populateSelects();
         e.target.reset();
     }
 
